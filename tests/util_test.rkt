@@ -7,6 +7,8 @@
   (check-true (parse-bool "yes"))
   (check-true (parse-bool "True"))
   (check-false (parse-bool "no"))
+  (check-equal? (parse-int "12" "mentor-id") 12)
+  (check-equal? (parse-rating "5") 5)
   (check-equal? (parse-tags "goal-setting, confidence, ") '("goal-setting" "confidence"))
   (check-equal? (parse-tags "") '())
   (check-equal? (parse-tags #f) '()))

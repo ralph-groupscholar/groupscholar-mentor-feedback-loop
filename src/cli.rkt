@@ -12,6 +12,8 @@
   (displayln "  add-mentor --name NAME --org ORG")
   (displayln "  add-session --mentor-id ID --date YYYY-MM-DD --scholar NAME --program NAME --rating 1-5 --notes TEXT --follow-up yes|no --tags tag1,tag2")
   (displayln "  mentor-summary --mentor-id ID")
+  (displayln "  follow-ups --since YYYY-MM-DD --limit N")
+  (displayln "  top-mentors --since YYYY-MM-DD --limit N")
   (displayln "  weekly-digest --week-start YYYY-MM-DD"))
 
 (define (arg-value args key)
@@ -54,6 +56,27 @@
          (printf "- ~a (~a)~n" label uses)]
         [_ (displayln row)]))))
 
+(define (print-followups rows)
+  (when (null? rows)
+    (displayln "No follow-ups found."))
+  (for ([row rows])
+    (match row
+      [(list id session-date scholar program rating notes mentor org days-since tags)
+       (printf "~a | mentor: ~a (~a) | scholar: ~a | program: ~a | date: ~a | rating: ~a | days since: ~a~n"
+               id mentor org scholar program session-date rating days-since)
+       (printf "  tags: ~a~n  ~a~n" (if (string=? tags "") "n/a" tags) notes)]
+      [_ (displayln row)])))
+
+(define (print-top-mentors rows)
+  (when (null? rows)
+    (displayln "No mentors found in timeframe."))
+  (for ([row rows])
+    (match row
+      [(list mentor org sessions avg-rating follow-ups)
+       (printf "~a (~a) | sessions: ~a | avg rating: ~a | follow-ups: ~a~n"
+               mentor org sessions avg-rating follow-ups)]
+      [_ (displayln row)])))
+
 (define argv (vector->list (current-command-line-arguments)))
 
 (if (null? argv)
@@ -68,19 +91,28 @@
        (add-mentor! name org)
        (displayln "Mentor added.")]
       [(add-session)
-       (define mentor-id (string->number (require-arg argv "--mentor-id")))
+       (define mentor-id (parse-int (require-arg argv "--mentor-id") "mentor-id"))
        (define session-date (require-arg argv "--date"))
        (define scholar (require-arg argv "--scholar"))
        (define program (require-arg argv "--program"))
-       (define rating (string->number (require-arg argv "--rating")))
+       (define rating (parse-rating (require-arg argv "--rating")))
        (define notes (require-arg argv "--notes"))
        (define follow-up (parse-bool (require-arg argv "--follow-up")))
        (define tags (parse-tags (arg-value argv "--tags")))
        (add-session! mentor-id session-date scholar program rating notes follow-up tags)
        (displayln "Session logged.")]
       [(mentor-summary)
-       (define mentor-id (string->number (require-arg argv "--mentor-id")))
+       (define mentor-id (parse-int (require-arg argv "--mentor-id") "mentor-id"))
        (print-summary (mentor-summary mentor-id))]
+      [(follow-ups)
+       (define since (require-arg argv "--since"))
+       (define limit-raw (arg-value argv "--limit"))
+       (define limit (if limit-raw (parse-int limit-raw "limit") 50))
+       (print-followups (follow-up-queue #:since since #:limit limit))]
+      [(top-mentors)
+       (define since (require-arg argv "--since"))
+       (define limit (parse-int (require-arg argv "--limit") "limit"))
+       (print-top-mentors (top-mentors since limit))]
       [(weekly-digest)
        (define week-start (require-arg argv "--week-start"))
        (define-values (summary tags) (weekly-digest week-start))

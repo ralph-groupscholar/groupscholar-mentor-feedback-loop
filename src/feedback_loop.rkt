@@ -91,8 +91,60 @@
                    week-start))
      (values summary top-tags))))
 
+(define (follow-up-queue #:since [since #f] #:limit [limit 50])
+  (with-connection
+   (lambda (conn)
+     (define base-query
+       (string-append
+        "select s.id, s.session_date, s.scholar_name, s.program, s.rating, s.notes, "
+        "m.full_name, m.org, "
+        "(current_date - s.session_date) as days_since, "
+        "coalesce(string_agg(t.label, ', ' order by t.label), '') as tags "
+        "from " (qualified "sessions") " s "
+        "join " (qualified "mentors") " m on m.id = s.mentor_id "
+        "left join " (qualified "session_tags") " st on st.session_id = s.id "
+        "left join " (qualified "tags") " t on t.id = st.tag_id "
+        "where s.follow_up_needed = true "))
+     (define grouped
+       (string-append
+        "group by s.id, s.session_date, s.scholar_name, s.program, s.rating, s.notes, m.full_name, m.org "))
+     (if since
+         (query-rows conn
+                     (string-append base-query
+                                    "and s.session_date >= $1 "
+                                    grouped
+                                    "order by s.session_date asc, s.id asc "
+                                    "limit $2")
+                     since limit)
+         (query-rows conn
+                     (string-append base-query
+                                    grouped
+                                    "order by s.session_date asc, s.id asc "
+                                    "limit $1")
+                     limit)))))
+
+(define (top-mentors since-date limit)
+  (with-connection
+   (lambda (conn)
+     (query-rows conn
+                 (format (string-append
+                          "select m.full_name, m.org, count(s.id) as sessions, "
+                          "round(avg(s.rating)::numeric, 2) as avg_rating, "
+                          "sum(case when s.follow_up_needed then 1 else 0 end) as follow_ups "
+                          "from ~a m "
+                          "left join ~a s on s.mentor_id = m.id and s.session_date >= $1 "
+                          "where m.active is true "
+                          "group by m.full_name, m.org "
+                          "order by sessions desc, avg_rating desc "
+                          "limit $2")
+                         (qualified "mentors")
+                         (qualified "sessions"))
+                 since-date limit))))
+
 (provide add-mentor!
          list-mentors
          add-session!
          mentor-summary
-         weekly-digest)
+         weekly-digest
+         follow-up-queue
+         top-mentors)
