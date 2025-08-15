@@ -5,5 +5,7 @@
 - Added Postgres schema + seed data for mentor feedback tracking.
 - Implemented CLI commands for mentors, session logs, and weekly digest.
 - Added utility tests for parsing helpers.
+- Aligned follow-up queue CLI command name with help docs and added formatting tweaks.
+- Extended util tests to cover invalid rating input.
 - Added follow-up queue and top mentor reporting commands.
 - Hardened CLI input parsing with rating/int validation.

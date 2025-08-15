@@ -12,7 +12,7 @@
   (displayln "  add-mentor --name NAME --org ORG")
   (displayln "  add-session --mentor-id ID --date YYYY-MM-DD --scholar NAME --program NAME --rating 1-5 --notes TEXT --follow-up yes|no --tags tag1,tag2")
   (displayln "  mentor-summary --mentor-id ID")
-  (displayln "  follow-ups --since YYYY-MM-DD --limit N")
+  (displayln "  follow-up-queue --since YYYY-MM-DD --limit N")
   (displayln "  top-mentors --since YYYY-MM-DD --limit N")
   (displayln "  weekly-digest --week-start YYYY-MM-DD"))
 
@@ -104,7 +104,7 @@
       [(mentor-summary)
        (define mentor-id (parse-int (require-arg argv "--mentor-id") "mentor-id"))
        (print-summary (mentor-summary mentor-id))]
-      [(follow-ups)
+      [(follow-up-queue)
        (define since (require-arg argv "--since"))
        (define limit-raw (arg-value argv "--limit"))
        (define limit (if limit-raw (parse-int limit-raw "limit") 50))

@@ -37,7 +37,7 @@ racket src/cli.rkt list-mentors
 racket src/cli.rkt add-mentor --name "Ariane Wells" --org "STEM Fellows"
 racket src/cli.rkt add-session --mentor-id 1 --date 2026-02-03 --scholar "Nico P" --program "STEM Scholars" --rating 5 --notes "Strong goal-setting focus." --follow-up no --tags "goal-setting,confidence"
 racket src/cli.rkt mentor-summary --mentor-id 1
-racket src/cli.rkt follow-ups --since 2026-02-01 --limit 20
+racket src/cli.rkt follow-up-queue --since 2026-02-01 --limit 20
 racket src/cli.rkt top-mentors --since 2026-02-01 --limit 5
 racket src/cli.rkt weekly-digest --week-start 2026-02-02
 ```
