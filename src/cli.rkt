@@ -14,6 +14,7 @@
   (displayln "  mentor-summary --mentor-id ID")
   (displayln "  follow-up-queue --since YYYY-MM-DD --limit N")
   (displayln "  top-mentors --since YYYY-MM-DD --limit N")
+  (displayln "  mentor-alerts --since YYYY-MM-DD --min-sessions N --max-avg-rating 1-5 --min-follow-up-rate 0-1")
   (displayln "  weekly-digest --week-start YYYY-MM-DD"))
 
 (define (arg-value args key)
@@ -77,6 +78,16 @@
                mentor org sessions avg-rating follow-ups)]
       [_ (displayln row)])))
 
+(define (print-mentor-alerts rows)
+  (when (null? rows)
+    (displayln "No mentor alerts found for timeframe."))
+  (for ([row rows])
+    (match row
+      [(list mentor org sessions avg-rating follow-up-rate last-session)
+       (printf "~a (~a) | sessions: ~a | avg rating: ~a | follow-up rate: ~a | last: ~a~n"
+               mentor org sessions avg-rating follow-up-rate last-session)]
+      [_ (displayln row)])))
+
 (define argv (vector->list (current-command-line-arguments)))
 
 (if (null? argv)
@@ -113,6 +124,19 @@
        (define since (require-arg argv "--since"))
        (define limit (parse-int (require-arg argv "--limit") "limit"))
        (print-top-mentors (top-mentors since limit))]
+      [(mentor-alerts)
+       (define since (require-arg argv "--since"))
+       (define min-sessions-raw (arg-value argv "--min-sessions"))
+       (define max-avg-rating-raw (arg-value argv "--max-avg-rating"))
+       (define min-follow-up-rate-raw (arg-value argv "--min-follow-up-rate"))
+       (define min-sessions (if min-sessions-raw (parse-int min-sessions-raw "min-sessions") 3))
+       (define max-avg-rating (if max-avg-rating-raw
+                                  (parse-decimal-range max-avg-rating-raw "max-avg-rating" 1 5)
+                                  3.0))
+       (define min-follow-up-rate (if min-follow-up-rate-raw
+                                      (parse-rate min-follow-up-rate-raw "min-follow-up-rate")
+                                      0.4))
+       (print-mentor-alerts (mentor-alerts since min-sessions max-avg-rating min-follow-up-rate))]
       [(weekly-digest)
        (define week-start (require-arg argv "--week-start"))
        (define-values (summary tags) (weekly-digest week-start))

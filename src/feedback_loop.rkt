@@ -141,10 +141,39 @@
                          (qualified "sessions"))
                  since-date limit))))
 
+(define (mentor-alerts since-date min-sessions max-avg-rating min-follow-up-rate)
+  (with-connection
+   (lambda (conn)
+     (query-rows conn
+                 (format (string-append
+                          "with mentor_stats as ("
+                          "select m.full_name, m.org, "
+                          "count(s.id) as sessions, "
+                          "avg(s.rating)::numeric as avg_rating_raw, "
+                          "(sum(case when s.follow_up_needed then 1 else 0 end)::numeric / nullif(count(s.id), 0)) as follow_up_rate_raw, "
+                          "max(s.session_date) as last_session "
+                          "from ~a m "
+                          "join ~a s on s.mentor_id = m.id and s.session_date >= $1 "
+                          "where m.active is true "
+                          "group by m.full_name, m.org"
+                          ") "
+                          "select full_name, org, sessions, "
+                          "round(avg_rating_raw, 2) as avg_rating, "
+                          "round(coalesce(follow_up_rate_raw, 0), 2) as follow_up_rate, "
+                          "last_session "
+                          "from mentor_stats "
+                          "where sessions >= $2 "
+                          "and (avg_rating_raw <= $3 or coalesce(follow_up_rate_raw, 0) >= $4) "
+                          "order by avg_rating asc, follow_up_rate desc, sessions desc")
+                         (qualified "mentors")
+                         (qualified "sessions"))
+                 since-date min-sessions max-avg-rating min-follow-up-rate))))
+
 (provide add-mentor!
          list-mentors
          add-session!
          mentor-summary
          weekly-digest
          follow-up-queue
-         top-mentors)
+         top-mentors
+         mentor-alerts)

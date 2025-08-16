@@ -7,5 +7,9 @@
 - Added utility tests for parsing helpers.
 - Aligned follow-up queue CLI command name with help docs and added formatting tweaks.
 - Extended util tests to cover invalid rating input.
+- Added mentor alert reporting to flag low ratings or high follow-up rates.
 - Added follow-up queue and top mentor reporting commands.
 - Hardened CLI input parsing with rating/int validation.
+- Added mentor alerts report with rating/follow-up thresholds.
+- Extended CLI parsing to support decimal/rate thresholds.
+- Documented the new mentor alerts workflow.

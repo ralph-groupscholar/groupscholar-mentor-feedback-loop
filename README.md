@@ -39,6 +39,7 @@ racket src/cli.rkt add-session --mentor-id 1 --date 2026-02-03 --scholar "Nico P
 racket src/cli.rkt mentor-summary --mentor-id 1
 racket src/cli.rkt follow-up-queue --since 2026-02-01 --limit 20
 racket src/cli.rkt top-mentors --since 2026-02-01 --limit 5
+racket src/cli.rkt mentor-alerts --since 2026-02-01 --min-sessions 3 --max-avg-rating 3.0 --min-follow-up-rate 0.4
 racket src/cli.rkt weekly-digest --week-start 2026-02-02
 ```
 
